@@ -75,7 +75,7 @@ BEGIN
     JK_output(2) <= (temp(0) AND '0') OR (temp(2) AND JK_output(1));
 
     Q(0) <= '0';
-	  Q(1) <= temp(0);
-	  Q(2) <= temp(1);
-	  Q(3) <= temp(2);
+    Q(1) <= temp(0);
+    Q(2) <= temp(1);
+    Q(3) <= temp(2);
 END RTL;
