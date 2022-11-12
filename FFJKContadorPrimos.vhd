@@ -23,7 +23,7 @@ BEGIN
         IF (preset = '1') THEN
             IF (reset = '0') THEN
                 Def_Val <= '0';
-            ELSIF (falling_edge (clk)) THEN --borda descida
+            ELSIF (falling_edge (clk)) THEN-- borda descida
                 CASE(FF_input) IS
                     WHEN "00" => Def_Val <= Def_Val;
                     WHEN "01" => Def_Val <= '0';
@@ -40,7 +40,7 @@ END RTL;
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 
-ENTITY ffjkcontadorprimo IS
+ENTITY ffjkcontsync IS
     -- portas
     PORT (
         clk : IN STD_LOGIC;
@@ -48,8 +48,8 @@ ENTITY ffjkcontadorprimo IS
         reset : IN STD_LOGIC;
         Q : OUT STD_LOGIC_VECTOR (3 DOWNTO 0)
     );
-END ffjkcontadorprimo;
-ARCHITECTURE RTL OF ffjkcontadorprimo IS
+END ffjkcontsync;
+ARCHITECTURE RTL OF ffjkcontsync IS
     -- portas
     COMPONENT JK_FF IS
         PORT (
@@ -62,22 +62,25 @@ ARCHITECTURE RTL OF ffjkcontadorprimo IS
         );
     END COMPONENT;
     -- sinais
-    SIGNAL contagem : STD_LOGIC_VECTOR (3 DOWNTO 0) := "0000";
+    SIGNAL contagem : STD_LOGIC_VECTOR (3 DOWNTO 0) := "0000"; -- ABCD / [0] = A, [1] = B, [2] = C, [3] = D
     SIGNAL J_output : STD_LOGIC_VECTOR (3 DOWNTO 0);
     SIGNAL K_output : STD_LOGIC_VECTOR (3 DOWNTO 0);
 BEGIN
-    -- componentes conexao
+    -- D
     J_output(0) <= '1';
-    K_output(0) <= NOT(contagem(1)) AND NOT(contagem(2));
+    K_output(0) <= NOT(contagem(1)) AND NOT(contagem(2)); -- !B!C
 
-    J_output(1) <= NOT(contagem(0)) AND contagem(3);
-    K_output(1) <= NOT(contagem(1)) AND contagem(3);
+    -- C
+    J_output(1) <= NOT(contagem(0)) AND contagem(3); -- !AD
+    K_output(1) <= NOT(contagem(1)) AND contagem(3); -- !BD
 
-    J_output(2) <= contagem(2) AND contagem(3);
-    K_output(2) <= contagem(2) OR contagem(0);
+    -- B
+    J_output(2) <= contagem(2) AND contagem(3); -- CD
+    K_output(2) <= contagem(2) OR contagem(0); -- C + A
 
-    J_output(3) <= contagem(1) AND contagem(2);
-    K_output(3) <= NOT(contagem(2));
+    -- A
+    J_output(3) <= contagem(1) AND contagem(2); -- BC
+    K_output(3) <= NOT(contagem(2)); -- !C
 
     FFD : JK_FF PORT MAP(J => J_output(0), K => K_output(0), clk => clk, preset => preset, reset => reset, Q => contagem(3));
 
@@ -87,8 +90,5 @@ BEGIN
 
     FFA : JK_FF PORT MAP(J => J_output(3), K => K_output(3), clk => clk, preset => preset, reset => reset, Q => contagem(0));
 
-    Q(0) <= contagem(3);
-    Q(1) <= contagem(2);
-    Q(2) <= contagem(1);
-    Q(3) <= contagem(0);
+    Q <= contagem;
 END RTL;
